@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Blog Platform with Comments</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f7f6f3;
+    --bg-tertiary: #f0ede8;
+    --text-primary: #1a1a1a;
+    --text-secondary: #6b6b6b;
+    --text-hint: #9a9a9a;
+    --border-light: rgba(0,0,0,0.08);
+    --border-mid: rgba(0,0,0,0.14);
+    --border-strong: rgba(0,0,0,0.22);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Cascadia Code', 'Fira Code', monospace;
+    --blue-bg: #E6F1FB; --blue-text: #0C447C;
+    --teal-bg: #E1F5EE; --teal-text: #085041;
+    --purple-bg: #EEEDFE; --purple-text: #3C3489;
+    --coral-bg: #FAECE7; --coral-text: #712B13;
+    --amber-bg: #FAEEDA; --amber-text: #633806;
+    --red-bg: #FCEBEB; --red-text: #791F1F;
+    --green-bg: #EAF3DE; --green-text: #27500A;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-primary: #1c1c1c;
+      --bg-secondary: #242424;
+      --bg-tertiary: #2c2c2c;
+      --text-primary: #e8e8e8;
+      --text-secondary: #a0a0a0;
+      --text-hint: #666666;
+      --border-light: rgba(255,255,255,0.07);
+      --border-mid: rgba(255,255,255,0.13);
+      --border-strong: rgba(255,255,255,0.22);
+      --blue-bg: #0C447C; --blue-text: #B5D4F4;
+      --teal-bg: #085041; --teal-text: #9FE1CB;
+      --purple-bg: #3C3489; --purple-text: #CECBF6;
+      --coral-bg: #712B13; --coral-text: #F5C4B3;
+      --amber-bg: #633806; --amber-text: #FAC775;
+      --red-bg: #791F1F; --red-text: #F7C1C1;
+      --green-bg: #27500A; --green-text: #C0DD97;
+    }
+  }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Layout ── */
+  .app-shell {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    grid-template-rows: auto 1fr;
+    min-height: 100vh;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    grid-row: 1 / 3;
+    background: var(--bg-secondary);
+    border-right: 0.5px solid var(--border-mid);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 1rem;
+    gap: 4px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 8px;
+    margin-bottom: 1.5rem;
+  }
+  .brand-icon {
+    width: 32px; height: 32px;
+    background: var(--text-primary);
+    border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--bg-primary);
+    font-size: 16px;
+  }
+  .brand-name { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+
+  .nav-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-hint);
+    padding: 0 10px;
+    margin: 12px 0 4px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-secondary);
+    transition: all 0.15s;
+    border: 0.5px solid transparent;
+    user-select: none;
+  }
+  .nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+  .nav-item.active {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-weight: 500;
+    border-color: var(--border-mid);
+  }
+  .nav-item i { font-size: 17px; flex-shrink: 0; }
+
+  .badge {
+    margin-left: auto;
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 99px;
+    min-width: 18px;
+    text-align: center;
+  }
+
+  .user-card {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 0.5px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 10px 0;
+  }
+  .user-card .avatar-sm {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--blue-bg);
+    color: var(--blue-text);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600;
+    flex-shrink: 0;
+  }
+  .user-info { flex: 1; min-width: 0; }
+  .user-name { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+  .user-role { font-size: 11px; color: var(--text-hint); }
+  .online-dot { width: 8px; height: 8px; border-radius: 50%; background: #1D9E75; flex-shrink: 0; }
+
+  /* ── Top bar ── */
+  .topbar {
+    background: var(--bg-primary);
+    border-bottom: 0.5px solid var(--border-light);
+    padding: 0 2rem;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .topbar-title { font-size: 16px; font-weight: 500; }
+  .topbar-right { display: flex; align-items: center; gap: 8px; }
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    border: 0.5px solid var(--border-mid);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+    font-size: 13px;
+    color: var(--text-secondary);
+    width: 220px;
+  }
+  .search-box input {
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    color: var(--text-primary);
+    outline: none;
+    width: 100%;
+    font-family: var(--font);
+  }
+  .search-box input::placeholder { color: var(--text-hint); }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border-mid);
+    background: var(--bg-primary);
+    font-size: 13px; font-weight: 500;
+    cursor: pointer;
+    color: var(--text-primary);
+    transition: background 0.15s;
+    font-family: var(--font);
+    white-space: nowrap;
+  }
+  .btn:hover { background: var(--bg-secondary); }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary {
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    border-color: transparent;
+  }
+  .btn-primary:hover { opacity: 0.85; background: var(--text-primary); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn-danger { border-color: var(--red-bg); color: var(--red-text); }
+  .btn-danger:hover { background: var(--red-bg); }
+
+  /* ── Main content ── */
+  .main-content {
+    padding: 2rem;
+    overflow-y: auto;
+    background: var(--bg-tertiary);
+  }
+
+  /* ── Views ── */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── Stats grid ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+  .stat-card {
+    background: var(--bg-primary);
+    border: 0.5px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 1.1rem 1.25rem;
+  }
+  .stat-icon {
+    width: 36px; height: 36px;
+    border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+  .stat-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 2px; }
+  .stat-val { font-size: 24px; font-weight: 600; color: var(--text-primary); }
+  .stat-sub { font-size: 11px; color: var(--text-hint); margin-top: 2px; }
+
+  /* ── Section header ── */
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+  .section-title { font-size: 15px; font-weight: 500; }
+
+  /* ── Post list ── */
+  .post-list { display: flex; flex-direction: column; gap: 10px; }
+  .post-card {
+    background: var(--bg-primary);
+    border: 0.5px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 1.1rem 1.25rem;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .post-card:hover {
+    border-color: var(--border-strong);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .post-card-header {
+    display: flex; align-items: flex-start;
+    justify-content: space-between; gap: 12px;
+    margin-bottom: 6px;
+  }
+  .post-title { font-size: 15px; font-weight: 500; color: var(--text-primary); line-height: 1.4; }
+  .post-excerpt { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 10px; }
+  .post-footer { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .post-meta-item {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 12px; color: var(--text-hint);
+  }
+  .post-meta-item i { font-size: 14px; }
+
+  /* ── Tag pill ── */
+  .tag {
+    display: inline-flex; align-items: center;
+    font-size: 11px; font-weight: 500;
+    padding: 3px 9px; border-radius: 99px;
+    white-space: nowrap; flex-shrink: 0;
+  }
+
+  /* ── Post detail ── */
+  .post-detail { display: none; }
+  .post-detail.open { display: block; }
+  .post-list-wrap.hidden { display: none; }
+
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--text-secondary);
+    cursor: pointer; margin-bottom: 1.25rem;
+    padding: 6px 10px;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border-light);
+    background: var(--bg-primary);
+    transition: all 0.15s;
+  }
+  .back-btn:hover { background: var(--bg-secondary); color: var(--text-primary); }
+
+  .detail-card {
+    background: var(--bg-primary);
+    border: 0.5px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+  }
+  .detail-title { font-size: 22px; font-weight: 600; margin-bottom: 10px; line-height: 1.3; }
+  .detail-meta {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    font-size: 13px; color: var(--text-secondary);
+    margin-bottom: 1.5rem; padding-bottom: 1.5rem;
+    border-bottom: 0.5px solid var(--border-light);
+  }
+  .detail-meta span { display: flex; align-items: center; gap: 5px; }
+  .detail-body {
+    font-size: 15px; line-height: 1.85;
+    color: var(--text-primary);
+    margin-bottom: 2rem; padding-bottom: 2rem;
+    border-bottom: 0.5px solid var(--border-light);
+  }
+  .detail-body p { margin-bottom: 1rem; }
+
+  .comments-title { font-size: 15px; font-weight: 500; margin-bottom: 1.25rem; }
+  .comment { display: flex; gap: 12px; margin-bottom: 1rem; }
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; flex-shrink: 0;
+  }
+  .comment-bubble {
+    background: var(--bg-secondary);
+    border-radius: 0 var(--radius-lg) var(--radius-lg) var(--radius-lg);
+    padding: 10px 14px; flex: 1;
+  }
+  .comment-header { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .comment-name { font-size: 13px; font-weight: 500; }
+  .comment-time { font-size: 11px; color: var(--text-hint); }
+  .comment-text { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+
+  .comment-form {
+    display: flex; align-items: flex-start; gap: 12px;
+    margin-top: 1.5rem; padding-top: 1.25rem;
+    border-top: 0.5px solid var(--border-light);
+  }
+  .comment-form .avatar { margin-top: 2px; }
+  .comment-form-inner { flex: 1; }
+  .comment-input {
+    width: 100%; padding: 10px 14px;
+    border: 0.5px solid var(--border-mid);
+    border-radius: var(--radius-md);
+    font-size: 14px; font-family: var(--font);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    outline: none; resize: none;
+    min-height: 80px; transition: border-color 0.15s;
+  }
+  .comment-input:focus { border-color: var(--border-strong); background: var(--bg-primary); }
+  .comment-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+
+  /* ── Editor ── */
+  .editor-wrap {
+    background: var(--bg-primary);
+    border: 0.5px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .editor-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 0.5px solid var(--border-light);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .editor-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 14px; }
+
+  .form-field label {
+    display: block; font-size: 12px; font-weight: 600;
+    color: var(--text-secondary); margin-bottom: 5px;
+    letter-spacing: 0.03em;
+  }
+  .form-input {
+    width: 100%; padding: 10px 14px;
+    border: 0.5px solid var(--border-mid);
+    border-radius: var(--radius-md);
+    font-size: 14px; font-family: var(--font);
+    background: var(--bg-secondary); color: var(--text-primary);
+    outline: none; transition: border-color 0.15s, background 0.15s;
+  }
+  .form-input:focus { border-color: var(--border-strong); background: var(--bg-primary); }
+  select.form-input { cursor: pointer; }
+  textarea.form-input { resize: vertical; line-height: 1.7; min-height: 200px; }
+
+  .toolbar {
+    display: flex; gap: 4px; flex-wrap: wrap;
+    padding: 8px 14px;
+    border-bottom: 0.5px solid var(--border-light);
+    background: var(--bg-secondary);
+  }
+  .toolbar-btn {
+    padding: 5px 9px;
+    border: 0.5px solid var(--border-light);
+    border-radius: 6px;
+    background: var(--bg-primary);
+    font-size: 12px; cursor: pointer;
+    color: var(--text-secondary);
+    font-family: var(--font);
+    transition: all 0.1s;
+  }
+  .toolbar-btn:hover { border-color: var(--border-mid); color: var(--text-primary); background: var(--bg-secondary); }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .editor-footer {
+    padding: 1rem 1.5rem;
+    border-top: 0.5px solid var(--border-light);
+    display: flex; justify-content: flex-end; gap: 8px;
+    background: var(--bg-secondary);
+  }
+
+  /* ── Auth ── */
+  .auth-container {
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  .auth-tabs {
+    display: flex; gap: 0;
+    border: 0.5px solid var(--border-mid);
+    border-radius: var(--radius-md);
+    overflow: hidden; margin-bottom: 1.5rem;
+  }
+  .auth-tab {
+    flex: 1; padding: 9px;
+    background: var(--bg-secondary);
+    border: none; font-size: 13px; font-weight: 500;
+    cursor: pointer; color: var(--text-secondary);
+    font-family: var(--font); transition: all 0.15s;
+  }
+  .auth-tab.active { background: var(--bg-primary); color: var(--text-primary); }
+  .auth-card {
+    background: var(--bg-primary);
+    border: 0.5px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 1.75rem;
+  }
+  .auth-title { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+  .auth-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 1.5rem; }
+  .divider {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 12px; color: var(--text-hint); margin: 14px 0;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1; height: 0.5px; background: var(--border-light);
+  }
+
+  /* ── API docs ── */
+  .api-endpoint {
+    display: flex; align-items: center; gap: 14px;
+    padding: 11px 16px;
+    background: var(--bg-primary);
+    border: 0.5px solid var(--border-light);
+    border-radius: var(--radius-md);
+    margin-bottom: 8px;
+    transition: border-color 0.15s;
+  }
+  .api-endpoint:hover { border-color: var(--border-mid); }
+  .method-badge {
+    font-size: 11px; font-weight: 700;
+    padding: 3px 8px; border-radius: 5px;
+    min-width: 58px; text-align: center;
+    font-family: var(--font-mono);
+    flex-shrink: 0;
+  }
+  .api-path {
+    font-size: 13px; font-family: var(--font-mono);
+    color: var(--text-primary); flex: 1;
+  }
+  .api-desc { font-size: 12px; color: var(--text-secondary); }
+  .api-group-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.07em;
+    text-transform: uppercase; color: var(--text-hint);
+    margin: 1.5rem 0 8px;
+  }
+  .api-group-label:first-child { margin-top: 0; }
+
+  /* ── Toast ── */
+  .toast {
+    display: none;
+    align-items: center; gap: 10px;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    font-size: 13px; font-weight: 500;
+    margin-bottom: 1rem;
+  }
+  .toast.show { display: flex; }
+  .toast-success { background: var(--green-bg); color: var(--green-text); }
+  .toast-error { background: var(--red-bg); color: var(--red-text); }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .app-shell { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .form-row { grid-template-columns: 1fr; }
+    .topbar { padding: 0 1rem; }
+    .main-content { padding: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon"><i class="ti ti-writing"></i></div>
+      <span class="brand-name">BlogSpace</span>
+    </div>
+
+    <div class="nav-section-label">Navigation</div>
+    <div class="nav-item active" onclick="switchView('feed', this)" tabindex="0">
+      <i class="ti ti-layout-list"></i> Feed
+      <span class="badge">12</span>
+    </div>
+    <div class="nav-item" onclick="switchView('editor', this)" tabindex="0">
+      <i class="ti ti-edit"></i> Write post
+    </div>
+    <div class="nav-item" onclick="switchView('auth', this)" tabindex="0">
+      <i class="ti ti-user-circle"></i> Account
+    </div>
+
+    <div class="nav-section-label">Developer</div>
+    <div class="nav-item" onclick="switchView('api', this)" tabindex="0">
+      <i class="ti ti-api"></i> REST API
+    </div>
+
+    <div style="margin-top: auto; padding-top: 1rem; border-top: 0.5px solid var(--border-light);">
+      <div class="user-card">
+        <div class="avatar-sm">AK</div>
+        <div class="user-info">
+          <div class="user-name">Arun Kumar</div>
+          <div class="user-role">Author</div>
+        </div>
+        <div class="online-dot"></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Top bar ── -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-title" id="view-title">Latest posts</span>
+    </div>
+    <div class="topbar-right">
+      <div class="search-box">
+        <i class="ti ti-search" style="font-size:15px; color:var(--text-hint);"></i>
+        <input type="text" placeholder="Search posts..." />
+      </div>
+      <button class="btn btn-primary" onclick="switchView('editor', document.querySelector('[onclick*=editor]'))">
+        <i class="ti ti-plus"></i> Write
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Main content ── -->
+  <main class="main-content">
+
+    <!-- Feed View -->
+    <div class="view active" id="view-feed">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:var(--blue-bg); color:var(--blue-text);"><i class="ti ti-file-text"></i></div>
+          <div class="stat-label">Total posts</div>
+          <div class="stat-val">12</div>
+          <div class="stat-sub">+3 this week</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:var(--teal-bg); color:var(--teal-text);"><i class="ti ti-message"></i></div>
+          <div class="stat-label">Comments</div>
+          <div class="stat-val">47</div>
+          <div class="stat-sub">+12 this week</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:var(--purple-bg); color:var(--purple-text);"><i class="ti ti-users"></i></div>
+          <div class="stat-label">Members</div>
+          <div class="stat-val">8</div>
+          <div class="stat-sub">2 new this month</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:var(--amber-bg); color:var(--amber-text);"><i class="ti ti-eye"></i></div>
+          <div class="stat-label">Total views</div>
+          <div class="stat-val">1.4k</div>
+          <div class="stat-sub">↑ 22% this week</div>
+        </div>
+      </div>
+
+      <div class="post-list-wrap" id="post-list-wrap">
+        <div class="section-header">
+          <span class="section-title">All posts</span>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-sm">Newest</button>
+            <button class="btn btn-sm">Most commented</button>
+          </div>
+        </div>
+        <div class="post-list" id="post-list"></div>
+      </div>
+
+      <div class="post-detail" id="post-detail"></div>
+    </div>
+
+    <!-- Editor View -->
+    <div class="view" id="view-editor">
+      <div class="toast toast-success" id="editor-toast">
+        <i class="ti ti-circle-check"></i> Post published successfully!
+      </div>
+      <div class="editor-wrap">
+        <div class="editor-header">
+          <i class="ti ti-edit" style="font-size:18px; color:var(--text-secondary);"></i>
+          <span style="font-size:15px; font-weight:500;">New post</span>
+          <span style="margin-left:auto; font-size:12px; color:var(--text-hint);" id="draft-status">Draft</span>
+        </div>
+        <div class="editor-body">
+          <div class="form-row">
+            <div class="form-field">
+              <label>Title *</label>
+              <input type="text" class="form-input" id="post-title-input" placeholder="Your post title..." />
+            </div>
+            <div class="form-field">
+              <label>Category</label>
+              <select class="form-input" id="tag-select">
+                <option>Tutorial</option>
+                <option>Database</option>
+                <option>Authentication</option>
+                <option>Opinion</option>
+                <option>News</option>
+                <option>Open Source</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Short excerpt</label>
+            <input type="text" class="form-input" id="excerpt-input" placeholder="A brief summary shown on the feed..." />
+          </div>
+          <div class="form-field">
+            <label>Content *</label>
+            <div class="toolbar">
+              <button class="toolbar-btn"><b>B</b></button>
+              <button class="toolbar-btn"><i>I</i></button>
+              <button class="toolbar-btn" style="text-decoration:underline;">U</button>
+              <button class="toolbar-btn"><i class="ti ti-link"></i></button>
+              <button class="toolbar-btn"><i class="ti ti-list"></i></button>
+              <button class="toolbar-btn"><i class="ti ti-list-numbers"></i></button>
+              <button class="toolbar-btn"><i class="ti ti-code"></i></button>
+              <button class="toolbar-btn"><i class="ti ti-blockquote"></i></button>
+              <button class="toolbar-btn"><i class="ti ti-photo"></i></button>
+            </div>
+            <textarea class="form-input" id="body-input" placeholder="Write your post content here..." style="border-top-left-radius:0; border-top-right-radius:0;"></textarea>
+          </div>
+        </div>
+        <div class="editor-footer">
+          <button class="btn" onclick="saveDraft()"><i class="ti ti-device-floppy"></i> Save draft</button>
+          <button class="btn" onclick="previewPost()"><i class="ti ti-eye"></i> Preview</button>
+          <button class="btn btn-primary" onclick="publishPost()"><i class="ti ti-send"></i> Publish</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Auth View -->
+    <div class="view" id="view-auth">
+      <div class="auth-container">
+        <div class="auth-tabs">
+          <button class="auth-tab active" onclick="switchAuthTab('login', this)">Sign in</button>
+          <button class="auth-tab" onclick="switchAuthTab('register', this)">Register</button>
+        </div>
+        <div class="auth-card">
+          <!-- Login form -->
+          <div id="login-form">
+            <div class="auth-title">Welcome back</div>
+            <div class="auth-sub">Sign in to write posts and leave comments.</div>
+            <div class="toast toast-success" id="auth-toast" style="margin-bottom:1rem;">
+              <i class="ti ti-circle-check"></i> Signed in as Arun Kumar
+            </div>
+            <div class="form-field">
+              <label>Email address</label>
+              <input type="email" class="form-input" value="arun@example.com" />
+            </div>
+            <div class="form-field" style="margin-top:12px;">
+              <label>Password</label>
+              <input type="password" class="form-input" value="••••••••" />
+            </div>
+            <div style="display:flex; justify-content:flex-end; margin-top:6px; margin-bottom:14px;">
+              <a href="#" style="font-size:12px; color:var(--blue-text);">Forgot password?</a>
+            </div>
+            <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="doLogin()">
+              <i class="ti ti-login"></i> Sign in
+            </button>
+            <div class="divider">or continue with</div>
+            <button class="btn" style="width:100%; justify-content:center;">
+              <i class="ti ti-brand-google"></i> Google
+            </button>
+          </div>
+          <!-- Register form -->
+          <div id="register-form" style="display:none;">
+            <div class="auth-title">Create account</div>
+            <div class="auth-sub">Join to start writing and engaging with the community.</div>
+            <div class="form-row">
+              <div class="form-field">
+                <label>First name</label>
+                <input type="text" class="form-input" placeholder="Arun" />
+              </div>
+              <div class="form-field">
+                <label>Last name</label>
+                <input type="text" class="form-input" placeholder="Kumar" />
+              </div>
+            </div>
+            <div class="form-field" style="margin-top:12px;">
+              <label>Email address</label>
+              <input type="email" class="form-input" placeholder="arun@example.com" />
+            </div>
+            <div class="form-field" style="margin-top:12px;">
+              <label>Password</label>
+              <input type="password" class="form-input" placeholder="Min 8 characters" />
+            </div>
+            <div class="form-field" style="margin-top:12px;">
+              <label>Confirm password</label>
+              <input type="password" class="form-input" placeholder="Repeat password" />
+            </div>
+            <button class="btn btn-primary" style="width:100%; justify-content:center; margin-top:16px;" onclick="doRegister()">
+              <i class="ti ti-user-plus"></i> Create account
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REST API View -->
+    <div class="view" id="view-api">
+      <div style="max-width:680px;">
+        <div style="background:var(--bg-primary); border:0.5px solid var(--border-light); border-radius:var(--radius-lg); padding:1.5rem; margin-bottom:1.5rem;">
+          <div style="font-size:15px; font-weight:500; margin-bottom:6px;">Base URL</div>
+          <code style="font-size:13px; font-family:var(--font-mono); background:var(--bg-secondary); padding:8px 14px; border-radius:var(--radius-md); display:block; color:var(--text-primary);">https://api.yourblog.com/v1</code>
+          <div style="font-size:12px; color:var(--text-secondary); margin-top:10px;">All requests require <code style="font-family:var(--font-mono); font-size:12px;">Authorization: Bearer &lt;token&gt;</code> header except public GET routes.</div>
+        </div>
+
+        <div class="api-group-label">Posts</div>
+        <div class="api-endpoint">
+          <span class="method-badge" style="background:var(--teal-bg); color:var(--teal-text);">GET</span>
+          <span class="api-path">/posts</span>
+          <span class="api-desc">List all published posts</span>
+        </div>
+        <div class="api-endpoint">
+          <span class="method-badge" style="background:var(--purple-bg); color:var(--purple-text);">POST</span>
+          <span class="api-path">/posts</span>
+          <span class="api-desc">Create a new post</span>
+        </div>
+        <div class="api-endpoint">
+          <span class="method-badge" style="background:var(--teal-bg); color:var(--teal-text);">GET</span>
+          <span class="api-path">/posts/:id</span>
+          <span class="api-desc">Get a single post</span>
+        </div>
+        <div class="api-endpoint">
+          <span class="method-badge" style="background:var(--amber-bg); color:var(--amber-text);">PUT</span>
+          <span class="api-path">/posts/:id</span>
+          <span class="api-desc">Update a post (author only)</span>
+        </div>
+        <div class="api-endpoint">
+          <span class="method-badge" style="background:var(--red-bg); color:var(--red-text);">DELETE</span>
+          <span class="api-path">/posts/:id</span>
+          <span class="api-desc">Delete a post (author only)</span>
+        </div>
+
+        <div class="api-group-label">Comments</div>
+        <div class="api-endpoint">
+          <span class="method-badge" style="background:var(--teal-bg); color:var(--teal-text);">GET</span>
+          <span class="api-path">/posts/:id/comments</span>
+          <span class="api-desc">List comments for a post</span>
+        </div>
+        <div class="api-endpoint">
+          <span class="method-badge" style="background:var(--purple-bg); color:var(--purple-text);">POST</span>
+          <span class="api-path">/posts/:id/comments</span>
+          <span class="api-desc">Add a comment</span>
+        </div>
+        <div class="api-endpoint">
+          <span class="method-badge" style="background:var(--red-bg); color:var(--red-text);">DELETE</span>
+          <span class="api-path">/comments/:id</span>
+          <span class="api-desc">Delete a comment (author only)</span>
+        </div>
+
+        <div class="api-group-label">Authentication</div>
+        <div class="api-endpoint">
+          <span class="method-badge" style="background:var(--blue-bg); color:var(--blue-text);">POST</span>
+          <span class="api-path">/auth/register</span>
+          <span class="api-desc">Register a new user</span>
+        </div>
+        <div class="api-endpoint">
+          <span class="method-badge" style="background:var(--blue-bg); color:var(--blue-text);">POST</span>
+          <span class="api-path">/auth/login</span>
+          <span class="api-desc">Login and receive JWT token</span>
+        </div>
+        <div class="api-endpoint">
+          <span class="method-badge" style="background:var(--teal-bg); color:var(--teal-text);">GET</span>
+          <span class="api-path">/auth/me</span>
+          <span class="api-desc">Get current user profile</span>
+        </div>
+        <div class="api-endpoint">
+          <span class="method-badge" style="background:var(--blue-bg); color:var(--blue-text);">POST</span>
+          <span class="api-path">/auth/logout</span>
+          <span class="api-desc">Invalidate current token</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const POSTS = [
+  {
+    id: 0,
+    title: 'Getting started with RESTful API design',
+    tag: 'Tutorial', tagBg: 'var(--blue-bg)', tagCol: 'var(--blue-text)',
+    author: 'Priya S.', initials: 'PS', avClass: 'av-purple',
+    avBg: 'var(--purple-bg)', avCol: 'var(--purple-text)',
+    time: '2 hours ago', views: 142, commentCount: 5,
+    excerpt: 'REST APIs are the backbone of modern web apps. In this post we cover key principles: statelessness, resource naming, and HTTP verb usage.',
+    body: `<p>REST APIs are the backbone of modern web applications. The key principles are statelessness, uniform interface, and resource-based URLs.</p>
+<p>When naming endpoints, always use nouns (not verbs): <code>/posts</code> rather than <code>/getPosts</code>. Use HTTP verbs to express intent — GET to read, POST to create, PUT/PATCH to update, DELETE to remove.</p>
+<p>Status codes matter too: 200 OK, 201 Created, 400 Bad Request, 401 Unauthorized, 404 Not Found, 500 Internal Server Error. Return the right one every time.</p>
+<p>Finally, version your API from day one: <code>/v1/posts</code>. Changing a public API without versioning breaks clients.</p>`,
+    comments: [
+      {av:'PS', avBg:'var(--purple-bg)', avCol:'var(--purple-text)', name:'Priya S.', text:'Happy to answer questions in the comments!', time:'2h ago'},
+      {av:'RK', avBg:'var(--teal-bg)', avCol:'var(--teal-text)', name:'Rahul K.', text:'Great intro — would love a follow-up on API versioning strategies.', time:'1h ago'},
+      {av:'AM', avBg:'var(--coral-bg)', avCol:'var(--coral-text)', name:'Anjali M.', text:'Bookmarked. The verb vs noun point tripped me up before.', time:'45m ago'},
+      {av:'DV', avBg:'var(--blue-bg)', avCol:'var(--blue-text)', name:'Dev V.', text:'Would you recommend OpenAPI/Swagger for documentation?', time:'30m ago'},
+      {av:'SK', avBg:'var(--amber-bg)', avCol:'var(--amber-text)', name:'Sara K.', text:'Yes, Swagger UI is fantastic for interactive API docs.', time:'20m ago'},
+    ]
+  },
+  {
+    id: 1,
+    title: 'PostgreSQL vs MongoDB for blog data',
+    tag: 'Database', tagBg: 'var(--teal-bg)', tagCol: 'var(--teal-text)',
+    author: 'Rahul M.', initials: 'RM', avClass: 'av-teal',
+    avBg: 'var(--teal-bg)', avCol: 'var(--teal-text)',
+    time: '1 day ago', views: 98, commentCount: 3,
+    excerpt: 'Choosing the right database matters. Let\'s compare relational and document stores in the context of a blogging platform with comments and tags.',
+    body: `<p>For a blog with structured posts, tags, and user relationships, PostgreSQL's relational model gives you JOIN-based queries and strong consistency via ACID transactions.</p>
+<p>MongoDB shines when your content schema varies wildly or you need flexible nested documents. A single document can hold a post with all its embedded comments — great for read-heavy scenarios.</p>
+<p>For most blogging platforms, PostgreSQL is the safer long-term choice. You'll likely want complex queries across users, posts, tags, and likes — and SQL handles that elegantly.</p>
+<p>That said, hybrid approaches work too: PostgreSQL for users and metadata, a cache layer (Redis) for hot data.</p>`,
+    comments: [
+      {av:'DV', avBg:'var(--blue-bg)', avCol:'var(--blue-text)', name:'Dev V.', text:'We went with PostgreSQL and never looked back. The full-text search is underrated.', time:'20h ago'},
+      {av:'SK', avBg:'var(--teal-bg)', avCol:'var(--teal-text)', name:'Sara K.', text:'What about using both? Postgres for users, Mongo for posts?', time:'12h ago'},
+      {av:'RM', avBg:'var(--teal-bg)', avCol:'var(--teal-text)', name:'Rahul M.', text:'It works, but the operational complexity of two databases adds up fast.', time:'10h ago'},
+    ]
+  },
+  {
+    id: 2,
+    title: 'JWT authentication explained simply',
+    tag: 'Authentication', tagBg: 'var(--purple-bg)', tagCol: 'var(--purple-text)',
+    author: 'Arun K.', initials: 'AK', avClass: 'av-blue',
+    avBg: 'var(--blue-bg)', avCol: 'var(--blue-text)',
+    time: '3 days ago', views: 211, commentCount: 8,
+    excerpt: 'JSON Web Tokens solve stateless authentication elegantly. We break down header, payload, and signature — and show how to verify them on the backend.',
+    body: `<p>A JSON Web Token has three Base64-encoded parts separated by dots: <strong>header</strong> (algorithm info), <strong>payload</strong> (claims like user ID and expiry), and <strong>signature</strong> (HMAC of the first two parts).</p>
+<p>The server signs the token on login using a secret key. The client stores it and sends it in the Authorization header on every request. The server verifies the signature without a database lookup — that's the stateless magic.</p>
+<p>Key security tips: use HTTPS always, set a short expiry (15 mins to 1 hour), use refresh tokens for longevity, and store JWTs in HttpOnly cookies (not localStorage) to protect against XSS attacks.</p>
+<p>Never store sensitive data in the payload — it's Base64-encoded, not encrypted. Anyone can decode it.</p>`,
+    comments: [
+      {av:'PM', avBg:'var(--coral-bg)', avCol:'var(--coral-text)', name:'Priya M.', text:'Finally a clear explanation. The three-part structure was always fuzzy for me.', time:'2d ago'},
+      {av:'TK', avBg:'var(--purple-bg)', avCol:'var(--purple-text)', name:'Tarun K.', text:'Should we store JWTs in localStorage or cookies?', time:'1d ago'},
+      {av:'AK', avBg:'var(--blue-bg)', avCol:'var(--blue-text)', name:'Arun K.', text:'Cookies with HttpOnly flag — much safer against XSS attacks.', time:'1d ago'},
+      {av:'NS', avBg:'var(--teal-bg)', avCol:'var(--teal-text)', name:'Neha S.', text:'What\'s the recommended expiry time for access tokens?', time:'18h ago'},
+      {av:'AK', avBg:'var(--blue-bg)', avCol:'var(--blue-text)', name:'Arun K.', text:'15–60 minutes for access tokens, 7–30 days for refresh tokens.', time:'16h ago'},
+    ]
+  }
+];
+
+function renderPosts() {
+  const list = document.getElementById('post-list');
+  list.innerHTML = POSTS.map(p => `
+    <div class="post-card" onclick="openPost(${p.id})">
+      <div class="post-card-header">
+        <div class="post-title">${p.title}</div>
+        <span class="tag" style="background:${p.tagBg}; color:${p.tagCol};">${p.tag}</span>
+      </div>
+      <div class="post-excerpt">${p.excerpt}</div>
+      <div class="post-footer">
+        <span class="post-meta-item">
+          <div class="avatar" style="width:22px;height:22px;font-size:9px;background:${p.avBg};color:${p.avCol};">${p.initials}</div>
+          ${p.author}
+        </span>
+        <span class="post-meta-item"><i class="ti ti-clock"></i> ${p.time}</span>
+        <span class="post-meta-item"><i class="ti ti-message"></i> ${p.commentCount} comments</span>
+        <span class="post-meta-item"><i class="ti ti-eye"></i> ${p.views}</span>
+      </div>
+    </div>`).join('');
+}
+
+function openPost(id) {
+  const p = POSTS[id];
+  document.getElementById('post-list-wrap').classList.add('hidden');
+  const det = document.getElementById('post-detail');
+  det.classList.add('open');
+  det.innerHTML = `
+    <button class="back-btn" onclick="closePost()"><i class="ti ti-arrow-left"></i> Back to feed</button>
+    <div class="detail-card">
+      <div class="detail-title">${p.title}</div>
+      <div class="detail-meta">
+        <span>
+          <div class="avatar" style="width:28px;height:28px;font-size:10px;background:${p.avBg};color:${p.avCol};">${p.initials}</div>
+          ${p.author}
+        </span>
+        <span><i class="ti ti-clock"></i> ${p.time}</span>
+        <span><i class="ti ti-eye"></i> ${p.views} views</span>
+        <span class="tag" style="background:${p.tagBg}; color:${p.tagCol};">${p.tag}</span>
+      </div>
+      <div class="detail-body">${p.body}</div>
+      <div class="comments-title">${p.comments.length} comments</div>
+      <div id="comments-list-${id}">
+        ${p.comments.map(c => `
+          <div class="comment">
+            <div class="avatar" style="background:${c.avBg};color:${c.avCol};">${c.av}</div>
+            <div class="comment-bubble">
+              <div class="comment-header">
+                <span class="comment-name">${c.name}</span>
+                <span class="comment-time">${c.time}</span>
+              </div>
+              <div class="comment-text">${c.text}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div class="comment-form">
+        <div class="avatar" style="background:var(--blue-bg);color:var(--blue-text);margin-top:2px;">AK</div>
+        <div class="comment-form-inner">
+          <textarea class="comment-input" id="new-comment-${id}" placeholder="Add a comment..." rows="3"></textarea>
+          <div class="comment-actions">
+            <button class="btn btn-sm">Cancel</button>
+            <button class="btn btn-sm btn-primary" onclick="addComment(${id})">
+              <i class="ti ti-send"></i> Post comment
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('view-title').textContent = p.title;
+}
+
+function closePost() {
+  document.getElementById('post-list-wrap').classList.remove('hidden');
+  const det = document.getElementById('post-detail');
+  det.classList.remove('open');
+  det.innerHTML = '';
+  document.getElementById('view-title').textContent = 'Latest posts';
+}
+
+function addComment(id) {
+  const input = document.getElementById(`new-comment-${id}`);
+  const text = input.value.trim();
+  if (!text) { input.focus(); return; }
+  const list = document.getElementById(`comments-list-${id}`);
+  const newComment = document.createElement('div');
+  newComment.className = 'comment';
+  newComment.innerHTML = `
+    <div class="avatar" style="background:var(--blue-bg);color:var(--blue-text);">AK</div>
+    <div class="comment-bubble">
+      <div class="comment-header">
+        <span class="comment-name">Arun K.</span>
+        <span class="comment-time">just now</span>
+      </div>
+      <div class="comment-text">${text.replace(/</g,'&lt;')}</div>
+    </div>`;
+  list.appendChild(newComment);
+  input.value = '';
+  newComment.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  POSTS[id].commentCount++;
+}
+
+function switchView(name, el) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  if (el) el.classList.add('active');
+  const titles = { feed: 'Latest posts', editor: 'Write a post', auth: 'Account', api: 'REST API' };
+  document.getElementById('view-title').textContent = titles[name] || name;
+  closePost();
+}
+
+function switchAuthTab(tab, el) {
+  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
+}
+
+function doLogin() {
+  const t = document.getElementById('auth-toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+function doRegister() {
+  switchAuthTab('login', document.querySelector('.auth-tab'));
+  doLogin();
+}
+
+function publishPost() {
+  const title = document.getElementById('post-title-input').value.trim();
+  if (!title) { document.getElementById('post-title-input').focus(); return; }
+  const toast = document.getElementById('editor-toast');
+  toast.classList.add('show');
+  document.getElementById('draft-status').textContent = 'Published';
+  setTimeout(() => toast.classList.remove('show'), 3500);
+  document.getElementById('post-title-input').value = '';
+  document.getElementById('excerpt-input').value = '';
+  document.getElementById('body-input').value = '';
+  document.getElementById('draft-status').textContent = 'Draft';
+}
+
+function saveDraft() {
+  const status = document.getElementById('draft-status');
+  status.textContent = 'Saved ✓';
+  setTimeout(() => status.textContent = 'Draft', 2000);
+}
+
+function previewPost() {
+  const title = document.getElementById('post-title-input').value.trim();
+  if (!title) { alert('Add a title to preview.'); return; }
+  alert('Preview: ' + title + '\n\nIn a real app this would open a preview pane.');
+}
+
+renderPosts();
+</script>
+</body>
+</html>
